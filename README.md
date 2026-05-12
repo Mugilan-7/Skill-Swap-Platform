@@ -98,6 +98,30 @@ npm run build        # Build React frontend
 npm run start        # Start Express server
 ```
 
+## GitHub Pages Deployment
+
+This repository includes a GitHub Actions workflow that builds the React app from `client/` and deploys it to GitHub Pages.
+
+1. In GitHub, open **Settings > Pages**.
+2. Set **Source** to **GitHub Actions**.
+3. Push to `main`.
+4. Open `https://mugilan-7.github.io/Skill-Swap-Platform/`.
+
+GitHub Pages can only host the frontend. Login, register, chat, uploads, and dashboard data need the Express backend running on a hosting service such as Render, Railway, or a VPS with MongoDB configured.
+
+After deploying the backend, add these repository variables in **Settings > Secrets and variables > Actions > Variables**:
+
+```env
+VITE_API_URL=https://your-backend-domain.com/api
+VITE_SOCKET_URL=https://your-backend-domain.com
+```
+
+Set the backend `CLIENT_URL` environment variable to include the GitHub Pages URL:
+
+```env
+CLIENT_URL=https://mugilan-7.github.io/Skill-Swap-Platform
+```
+
 ## API Overview
 
 - `POST /api/auth/register`
