@@ -38,6 +38,9 @@ export async function sendEmail({ to, subject, html, text }) {
 }
 
 export function appUrl(path) {
-  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-  return `${clientUrl}${path}`;
+  const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173")
+    .split(",")[0]
+    .trim()
+    .replace(/\/$/, "");
+  return `${clientUrl}/#${path}`;
 }

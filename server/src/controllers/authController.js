@@ -6,6 +6,10 @@ import { toArray } from "../utils/validators.js";
 import { appUrl, sendEmail } from "../utils/email.js";
 import { createPlainToken, hashToken } from "../utils/cryptoTokens.js";
 
+function requiresEmailVerification() {
+  return process.env.REQUIRE_EMAIL_VERIFICATION === "true";
+}
+
 export const registerRules = [
   body("name").trim().isLength({ min: 2 }).withMessage("Name must be at least 2 characters"),
   body("email").isEmail().normalizeEmail().withMessage("Valid email is required"),
@@ -54,14 +58,16 @@ export const register = asyncHandler(async (req, res) => {
     category: req.body.category || "coding",
     skillsOffered: toArray(req.body.skillsOffered),
     skillsWanted: toArray(req.body.skillsWanted),
-    emailVerified: false,
+    emailVerified: !requiresEmailVerification(),
     badges: ["Beginner"]
   });
 
-  const verification = await sendVerificationEmail(user);
+  const verification = requiresEmailVerification() ? await sendVerificationEmail(user) : null;
 
   res.status(201).json({
-    message: verification.dev
+    message: !requiresEmailVerification()
+      ? "Account created. You can now log in."
+      : verification.dev
       ? "Account created. Email delivery is not configured locally, so the verification link was written to the server log."
       : "Account created. Check your email to verify your account before logging in.",
     user: user.toSafeObject()
@@ -73,8 +79,14 @@ export const login = asyncHandler(async (req, res) => {
   if (!user || !(await user.matchPassword(req.body.password))) {
     return res.status(401).json({ message: "Invalid email or password" });
   }
-  if (!user.emailVerified && user.emailVerificationToken) {
+  if (requiresEmailVerification() && !user.emailVerified && user.emailVerificationToken) {
     return res.status(403).json({ message: "Please verify your email before logging in" });
+  }
+  if (!requiresEmailVerification() && !user.emailVerified) {
+    user.emailVerified = true;
+    user.emailVerificationToken = "";
+    user.emailVerificationExpires = undefined;
+    await user.save();
   }
 
   res.json({ user: user.toSafeObject(), token: createToken(user._id) });
