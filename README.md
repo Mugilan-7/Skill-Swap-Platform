@@ -107,7 +107,13 @@ This repository includes a GitHub Actions workflow that builds the React app fro
 3. Push to `main`.
 4. Open `https://mugilan-7.github.io/Skill-Swap-Platform/`.
 
-GitHub Pages can only host the frontend. Login, register, chat, uploads, and dashboard data need the Express backend running on a hosting service such as Render, Railway, or a VPS with MongoDB configured.
+The app uses hash routing on GitHub Pages, so login routes look like:
+
+```text
+https://mugilan-7.github.io/Skill-Swap-Platform/#/login
+```
+
+GitHub Pages can only host the frontend. Login, register, chat, uploads, and dashboard data need the Express backend running on a hosting service such as Render, Railway, or a VPS with MongoDB configured. If `VITE_API_URL` is not set, login cannot work on GitHub Pages because there is no backend API there.
 
 After deploying the backend, add these repository variables in **Settings > Secrets and variables > Actions > Variables**:
 
