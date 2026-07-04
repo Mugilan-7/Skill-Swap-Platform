@@ -8,7 +8,7 @@ export const isApiConfigured = Boolean(API_URL);
 
 export function getApiErrorMessage(error, fallback = "Something went wrong. Please try again.") {
   if (error?.code === "API_URL_MISSING") {
-    return "Login is not available yet because the backend API URL is not configured for this deployed site.";
+    return "This feature needs the live backend API. Demo login and registration are available on this GitHub Pages site.";
   }
   return error?.response?.data?.message || error?.message || fallback;
 }

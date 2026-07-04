@@ -80,7 +80,7 @@ export default function Dashboard() {
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {swaps.accepted.map((swap) => (
             <div key={swap._id} className="rounded-lg border border-slate-200 p-4 dark:border-slate-800">
-              <div className="font-semibold">{swap.from.name} ↔ {swap.to.name}</div>
+              <div className="font-semibold">{swap.from.name} to {swap.to.name}</div>
               <p className="text-sm text-slate-500">{swap.offeredSkill} for {swap.wantedSkill}</p>
               <button onClick={() => updateStatus(swap._id, "completed")} className="btn-secondary mt-3">Mark completed</button>
             </div>
