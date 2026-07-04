@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
-import api from "../lib/api.js";
+import api, { getApiErrorMessage } from "../lib/api.js";
 
 export default function Login() {
   const { login } = useAuth();
@@ -18,7 +18,7 @@ export default function Login() {
       await login(form.email, form.password);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(getApiErrorMessage(err, "Login failed"));
     }
   }
 
@@ -29,7 +29,7 @@ export default function Login() {
       const { data } = await api.post("/auth/resend-verification", { email: form.email });
       setMessage(data.message);
     } catch (err) {
-      setError(err.response?.data?.message || "Could not resend verification email");
+      setError(getApiErrorMessage(err, "Could not resend verification email"));
     }
   }
 

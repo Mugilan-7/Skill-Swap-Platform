@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Send } from "lucide-react";
 import { io } from "socket.io-client";
-import api, { SOCKET_URL } from "../lib/api.js";
+import api, { SOCKET_URL, getApiErrorMessage, isApiConfigured } from "../lib/api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Chat() {
@@ -10,27 +10,45 @@ export default function Chat() {
   const [active, setActive] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
+  const [error, setError] = useState("");
 
-  const socket = useMemo(() => io(SOCKET_URL, { auth: { token: localStorage.getItem("skillswap_token") } }), []);
-
-  useEffect(() => {
-    api.get("/swaps").then((res) => {
-      setSwaps(res.data.accepted);
-      if (res.data.accepted[0]) setActive(res.data.accepted[0]);
-    });
-    return () => socket.disconnect();
+  const socket = useMemo(() => {
+    const token = localStorage.getItem("skillswap_token");
+    return token && SOCKET_URL ? io(SOCKET_URL, { auth: { token } }) : null;
   }, []);
 
   useEffect(() => {
-    if (!active) return;
-    api.get(`/chats/${active._id}/messages`).then((res) => setMessages(res.data));
+    if (!isApiConfigured) {
+      setError("Chat is not available yet because the backend API URL is not configured for this deployed site.");
+      return undefined;
+    }
+
+    api
+      .get("/swaps")
+      .then((res) => {
+        setSwaps(res.data.accepted);
+        if (res.data.accepted[0]) setActive(res.data.accepted[0]);
+      })
+      .catch((err) => setError(getApiErrorMessage(err, "Could not load chats.")));
+
+    return () => socket?.disconnect();
+  }, [socket]);
+
+  useEffect(() => {
+    if (!active || !socket) return;
+
+    api
+      .get(`/chats/${active._id}/messages`)
+      .then((res) => setMessages(res.data))
+      .catch((err) => setError(getApiErrorMessage(err, "Could not load messages.")));
+
     socket.emit("swap:join", active._id);
     const handler = (message) => {
       if (String(message.swap) === String(active._id)) setMessages((prev) => [...prev, message]);
     };
     socket.on("message:new", handler);
     return () => socket.off("message:new", handler);
-  }, [active]);
+  }, [active, socket]);
 
   function otherPerson(swap) {
     return String(swap.from._id) === String(user._id) ? swap.to : swap.from;
@@ -39,6 +57,10 @@ export default function Chat() {
   function send(e) {
     e.preventDefault();
     if (!text.trim() || !active) return;
+    if (!socket) {
+      setError("Chat is not connected.");
+      return;
+    }
     socket.emit("message:send", { swapId: active._id, text });
     setText("");
   }
@@ -47,6 +69,7 @@ export default function Chat() {
     <div className="grid min-h-[72vh] overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:grid-cols-[320px_1fr]">
       <aside className="border-b border-slate-200 dark:border-slate-800 md:border-b-0 md:border-r">
         <div className="border-b border-slate-200 p-4 font-semibold dark:border-slate-800">Accepted chats</div>
+        {error && <div className="m-3 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200">{error}</div>}
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
           {swaps.map((swap) => {
             const person = otherPerson(swap);
@@ -55,7 +78,7 @@ export default function Chat() {
                 <img className="h-10 w-10 rounded-full object-cover" src={person.profilePicture || `https://api.dicebear.com/9.x/initials/svg?seed=${person.name}`} alt="" />
                 <div>
                   <div className="font-semibold">{person.name}</div>
-                  <div className="text-xs text-slate-500">{swap.offeredSkill} ↔ {swap.wantedSkill}</div>
+                  <div className="text-xs text-slate-500">{swap.offeredSkill} to {swap.wantedSkill}</div>
                 </div>
               </button>
             );

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { getApiErrorMessage } from "../lib/api.js";
 
 const categories = ["coding", "design", "music", "language", "business", "fitness"];
 
@@ -20,7 +21,7 @@ export default function Register() {
       setMessage(data.message || "Account created. Check your email to verify your account.");
       setTimeout(() => navigate("/login"), 1800);
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      setError(getApiErrorMessage(err, "Registration failed"));
     }
   }
 

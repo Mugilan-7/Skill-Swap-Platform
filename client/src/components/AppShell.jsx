@@ -3,7 +3,7 @@ import { Bell, LogOut, MessageCircle, Moon, Newspaper, Search, Sun, UserRound, L
 import { io } from "socket.io-client";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
-import { SOCKET_URL } from "../lib/api.js";
+import { SOCKET_URL, isApiConfigured } from "../lib/api.js";
 import api from "../lib/api.js";
 
 const nav = [
@@ -22,10 +22,11 @@ export default function AppShell({ children, dark, setDark }) {
   const unread = notifications.filter((item) => !item.read).length;
   const socket = useMemo(() => {
     const token = localStorage.getItem("skillswap_token");
-    return token ? io(SOCKET_URL, { auth: { token } }) : null;
+    return token && SOCKET_URL ? io(SOCKET_URL, { auth: { token } }) : null;
   }, []);
 
   useEffect(() => {
+    if (!isApiConfigured) return;
     api.get("/notifications").then((res) => setNotifications(res.data)).catch(() => {});
   }, []);
 
