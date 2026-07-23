@@ -18,20 +18,38 @@ import { useAuth } from "./context/AuthContext.jsx";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="grid min-h-screen place-items-center bg-mist text-slate-600 dark:bg-slate-950">Loading...</div>;
+  if (loading) return <div className="premium-loader"><span aria-label="Loading SkillSwap Hub" /></div>;
   return user ? children : <Navigate to="/login" replace />;
 }
 
 export default function App() {
-  const [dark, setDark] = useState(() => localStorage.getItem("skillswap_theme") === "dark");
+  const [dark, setDark] = useState(() => localStorage.getItem("skillswap_theme") !== "light");
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
     localStorage.setItem("skillswap_theme", dark ? "dark" : "light");
   }, [dark]);
 
+  useEffect(() => {
+    let frame = 0;
+    function updateCursor(event) {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        document.documentElement.style.setProperty("--mx", `${event.clientX}px`);
+        document.documentElement.style.setProperty("--my", `${event.clientY}px`);
+        frame = 0;
+      });
+    }
+    window.addEventListener("pointermove", updateCursor, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", updateCursor);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
   return (
     <>
+      <div className="cursor-glow" />
       <AnimatePresence mode="wait">
         <Routes>
           <Route path="/" element={<Landing dark={dark} setDark={setDark} />} />

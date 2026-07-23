@@ -130,12 +130,12 @@ export default function Feed() {
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <section className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Social Feed</h1>
-          <p className="mt-1 text-slate-500 dark:text-slate-400">Share learning updates, follow skill partners, and discover useful posts.</p>
+          <h1 className="section-title">Social Feed</h1>
+          <p className="muted mt-1">Share learning updates, follow skill partners, and discover useful posts.</p>
         </div>
 
-        <form onSubmit={createPost} className="panel p-5">
-          <h2 className="font-semibold">Create post</h2>
+        <form onSubmit={createPost} className="panel tilt-card p-5">
+          <h2 className="font-semibold text-white">Create post</h2>
           <div className="mt-4 grid gap-3">
             <input className="field" placeholder="Title" value={postForm.title} onChange={(e) => setPostForm({ ...postForm, title: e.target.value })} />
             <textarea className="field min-h-28" placeholder="Content" value={postForm.content} onChange={(e) => setPostForm({ ...postForm, content: e.target.value })} />
@@ -165,13 +165,13 @@ export default function Feed() {
             const isAuthor = String(post.user?._id) === String(user._id);
 
             return (
-              <article key={post._id} className="panel p-5">
+              <article key={post._id} className="panel tilt-card p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex gap-3">
                     <img className="h-11 w-11 rounded-full object-cover" src={post.user?.profilePicture || `https://api.dicebear.com/9.x/initials/svg?seed=${post.user?.name}`} alt="" />
                     <div>
-                      <h2 className="text-lg font-semibold">{post.title}</h2>
-                      <p className="text-sm text-slate-500">by {post.user?.name} • {new Date(post.createdAt).toLocaleString()}</p>
+                      <h2 className="text-lg font-semibold text-white">{post.title}</h2>
+                      <p className="text-sm text-slate-300">by {post.user?.name} - {new Date(post.createdAt).toLocaleString()}</p>
                     </div>
                   </div>
                   {!isAuthor && (
@@ -180,7 +180,7 @@ export default function Feed() {
                     </button>
                   )}
                 </div>
-                <p className="mt-4 whitespace-pre-wrap text-slate-700 dark:text-slate-200">{post.content}</p>
+                <p className="mt-4 whitespace-pre-wrap text-slate-200">{post.content}</p>
                 <div className="mt-4 flex flex-wrap gap-2">{post.tags?.map((tag) => <SkillPill key={tag}>#{tag}</SkillPill>)}</div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button onClick={() => likePost(post._id)} className="btn-secondary"><Heart size={16} /> {liked ? "Liked" : "Like"} ({post.likes?.length || 0})</button>
@@ -188,7 +188,7 @@ export default function Feed() {
                 </div>
                 <div className="mt-4 space-y-2">
                   {post.comments?.map((comment) => (
-                    <div key={comment._id} className="rounded-lg bg-slate-50 p-3 text-sm dark:bg-slate-800">
+                    <div key={comment._id} className="rounded-lg border border-cyan-200/10 bg-white/[0.04] p-3 text-sm">
                       <span className="font-semibold">{comment.user?.name}: </span>{comment.text}
                     </div>
                   ))}
@@ -200,7 +200,7 @@ export default function Feed() {
               </article>
             );
           })}
-          {posts.length === 0 && <div className="panel p-5 text-slate-500">No posts found.</div>}
+          {posts.length === 0 && <div className="panel p-5 text-slate-300">No posts found.</div>}
         </div>
       </section>
 
@@ -209,7 +209,7 @@ export default function Feed() {
           <h2 className="flex items-center gap-2 font-semibold"><Bot size={18} /> Voice AI Assistant</h2>
           <div className="mt-4 max-h-80 space-y-2 overflow-y-auto">
             {chatMessages.map((message, index) => (
-              <div key={index} className={`rounded-lg px-3 py-2 text-sm ${message.role === "user" ? "bg-teal-700 text-white" : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100"}`}>
+              <div key={index} className={`rounded-lg border px-3 py-2 text-sm ${message.role === "user" ? "border-cyan-200/20 bg-gradient-to-br from-cyan-500/80 to-violet-500/80 text-white" : "border-white/10 bg-white/[0.07] text-slate-100"}`}>
                 {message.text}
               </div>
             ))}

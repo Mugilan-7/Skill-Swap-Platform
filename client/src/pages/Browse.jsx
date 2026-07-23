@@ -33,8 +33,8 @@ export default function Browse() {
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
         <div>
-          <h1 className="text-3xl font-bold">Browse people</h1>
-          <p className="mt-1 text-slate-500 dark:text-slate-400">Search by offered or wanted skills.</p>
+          <h1 className="section-title">Browse people</h1>
+          <p className="muted mt-1">Search the skill graph by offered expertise, learning goals, or category.</p>
         </div>
         <form onSubmit={(e) => { e.preventDefault(); load(); }} className="flex gap-2">
           <input className="field min-w-0 md:w-72" placeholder="Search skills" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
@@ -46,7 +46,7 @@ export default function Browse() {
       </div>
       {recommended.length > 0 && (
         <section className="panel p-5">
-          <h2 className="font-semibold">Recommended partners</h2>
+          <h2 className="font-semibold text-white">Recommended partners</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             {recommended.map(({ user }) => <UserCard key={user._id} user={user} onRequest={setRequestUser} />)}
           </div>
@@ -56,9 +56,9 @@ export default function Browse() {
         {users.map((user) => <UserCard key={user._id} user={user} onRequest={setRequestUser} />)}
       </section>
       {requestUser && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 px-4">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/70 px-4 backdrop-blur-md">
           <form onSubmit={submitRequest} className="panel w-full max-w-md p-5">
-            <h2 className="text-lg font-semibold">Request swap with {requestUser.name}</h2>
+            <h2 className="text-lg font-semibold text-white">Request swap with {requestUser.name}</h2>
             <div className="mt-4 space-y-3">
               <input className="field" placeholder="Skill you will teach" value={form.offeredSkill} onChange={(e) => setForm({ ...form, offeredSkill: e.target.value })} />
               <input className="field" placeholder="Skill you want to learn" value={form.wantedSkill} onChange={(e) => setForm({ ...form, wantedSkill: e.target.value })} />
