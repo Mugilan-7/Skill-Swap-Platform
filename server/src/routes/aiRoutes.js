@@ -6,6 +6,17 @@ import { validate } from "../utils/validators.js";
 
 const router = express.Router();
 
-router.post("/chat", protect, body("prompt").trim().isLength({ min: 2, max: 500 }), validate, askChatbot);
+router.post(
+  "/chat",
+  protect,
+  body().custom((value) => {
+    const message = String(value?.message ?? value?.prompt ?? "").trim();
+    if (!message) throw new Error("Message is required.");
+    if (message.length > 4000) throw new Error("Message must be 4000 characters or fewer.");
+    return true;
+  }),
+  validate,
+  askChatbot
+);
 
 export default router;

@@ -7,6 +7,7 @@ export function notFound(req, res, next) {
 export function errorHandler(error, _req, res, _next) {
   const status = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(status).json({
+    success: false,
     message: error.message || "Server error",
     stack: process.env.NODE_ENV === "production" ? undefined : error.stack
   });

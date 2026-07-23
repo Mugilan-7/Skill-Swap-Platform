@@ -1,7 +1,7 @@
 import { Bot, Send, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import api from "../lib/api.js";
+import { sendAiMessage } from "../lib/ai.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Chatbot() {
@@ -10,6 +10,11 @@ export default function Chatbot() {
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState([{ role: "bot", text: "Ask me for skill ideas, profile tips, or partner matches." }]);
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, loading, open]);
 
   if (!user) return null;
 
@@ -21,10 +26,10 @@ export default function Chatbot() {
     setMessages((prev) => [...prev, { role: "user", text: question }]);
     setLoading(true);
     try {
-      const { data } = await api.post("/ai/chat", { prompt: question });
-      setMessages((prev) => [...prev, { role: "bot", text: data.reply }]);
+      const reply = await sendAiMessage(question);
+      setMessages((prev) => [...prev, { role: "bot", text: reply }]);
     } catch (error) {
-      setMessages((prev) => [...prev, { role: "bot", text: error.response?.data?.message || "AI assistant is unavailable right now." }]);
+      setMessages((prev) => [...prev, { role: "bot", text: error.message || "AI service is temporarily unavailable. Please try again." }]);
     } finally {
       setLoading(false);
     }
@@ -44,11 +49,19 @@ export default function Chatbot() {
                 {message.text}
               </div>
             ))}
-            {loading && <div className="mr-8 rounded-lg bg-slate-100 px-3 py-2 text-slate-600 dark:bg-slate-800">Thinking...</div>}
+            {loading && (
+              <div className="mr-8 flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-slate-600 dark:bg-slate-800">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-teal-700" />
+                <span>Typing...</span>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
           <form onSubmit={ask} className="flex gap-2 border-t border-slate-200 p-3 dark:border-slate-800">
-            <input className="field" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Ask for suggestions..." />
-            <button className="btn-primary" title="Send"><Send size={17} /></button>
+            <input className="field" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Ask for suggestions..." disabled={loading} />
+            <button className="btn-primary disabled:cursor-not-allowed disabled:opacity-60" title="Send" disabled={loading || !prompt.trim()}>
+              {loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <Send size={17} />}
+            </button>
           </form>
         </motion.div>
       )}

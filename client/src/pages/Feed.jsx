@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bookmark, Bot, Heart, Mic, MessageCircle, Send, UserPlus, Volume2 } from "lucide-react";
 import api from "../lib/api.js";
+import { sendAiMessage } from "../lib/ai.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import SkillPill from "../components/SkillPill.jsx";
 
@@ -13,7 +14,9 @@ export default function Feed() {
   const [comments, setComments] = useState({});
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([{ role: "ai", text: "Ask for post ideas, networking tips, or skill-learning guidance." }]);
+  const [chatLoading, setChatLoading] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState("");
+  const chatEndRef = useRef(null);
 
   async function loadPosts(mode = feedMode) {
     const query = new URLSearchParams(filters);
@@ -25,6 +28,10 @@ export default function Feed() {
   useEffect(() => {
     loadPosts().catch(() => {});
   }, [feedMode]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [chatMessages, chatLoading]);
 
   async function createPost(e) {
     e.preventDefault();
@@ -106,13 +113,16 @@ export default function Feed() {
     if (!message) return;
     setChatInput("");
     setChatMessages((prev) => [...prev, { role: "user", text: message }]);
+    setChatLoading(true);
     try {
-      const { data } = await api.post("/chat", { message });
-      setChatMessages((prev) => [...prev, { role: "ai", text: data.reply }]);
-      speak(data.reply);
+      const reply = await sendAiMessage(message);
+      setChatMessages((prev) => [...prev, { role: "ai", text: reply }]);
+      speak(reply);
     } catch (error) {
-      const text = error.response?.data?.message || "AI chat failed.";
+      const text = error.message || "AI service is temporarily unavailable. Please try again.";
       setChatMessages((prev) => [...prev, { role: "ai", text }]);
+    } finally {
+      setChatLoading(false);
     }
   }
 
@@ -203,11 +213,20 @@ export default function Feed() {
                 {message.text}
               </div>
             ))}
+            {chatLoading && (
+              <div className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-600 dark:bg-slate-800">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-teal-700" />
+                <span>Typing...</span>
+              </div>
+            )}
+            <div ref={chatEndRef} />
           </div>
           <form onSubmit={askAi} className="mt-4 flex gap-2">
-            <input className="field" value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Ask AI..." />
-            <button type="button" onClick={startVoiceInput} className="btn-secondary" title="Voice input"><Mic size={16} /></button>
-            <button className="btn-primary" title="Send"><Volume2 size={16} /></button>
+            <input className="field" value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Ask AI..." disabled={chatLoading} />
+            <button type="button" onClick={startVoiceInput} className="btn-secondary" title="Voice input" disabled={chatLoading}><Mic size={16} /></button>
+            <button className="btn-primary disabled:cursor-not-allowed disabled:opacity-60" title="Send" disabled={chatLoading || !chatInput.trim()}>
+              {chatLoading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <Volume2 size={16} />}
+            </button>
           </form>
           {voiceStatus && <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{voiceStatus}</p>}
         </section>

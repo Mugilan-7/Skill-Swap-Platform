@@ -17,6 +17,7 @@ import postRoutes from "./routes/postRoutes.js";
 import socialChatRoutes from "./routes/socialChatRoutes.js";
 import { configureSocket } from "./socket/index.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
+import { corsOrigin, getAllowedOrigins, shouldUseCredentials } from "./config/cors.js";
 
 dotenv.config();
 
@@ -26,12 +27,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+console.log(`Allowed client origins: ${getAllowedOrigins().join(", ")}`);
 
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cors({ origin: corsOrigin, credentials: shouldUseCredentials() }));
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));

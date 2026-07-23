@@ -4,12 +4,13 @@ import User from "../models/User.js";
 import SwapRequest from "../models/SwapRequest.js";
 import Message from "../models/Message.js";
 import { createNotification } from "../utils/notifications.js";
+import { corsOrigin, shouldUseCredentials } from "../config/cors.js";
 
 export function configureSocket(server) {
   const io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || "http://localhost:5173",
-      credentials: true
+      origin: corsOrigin,
+      credentials: shouldUseCredentials()
     }
   });
 
