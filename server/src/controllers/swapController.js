@@ -27,6 +27,18 @@ export const createSwap = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "You cannot send a swap request to yourself" });
   }
 
+  const recipient = await User.findById(req.body.to).select("_id");
+  if (!recipient) return res.status(404).json({ message: "Swap recipient not found" });
+
+  const duplicate = await SwapRequest.findOne({
+    from: req.user._id,
+    to: req.body.to,
+    status: "pending"
+  });
+  if (duplicate) {
+    return res.status(409).json({ message: "You already have a pending swap request for this user" });
+  }
+
   const swap = await SwapRequest.create({
     from: req.user._id,
     to: req.body.to,

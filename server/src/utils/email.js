@@ -38,7 +38,8 @@ export async function sendEmail({ to, subject, html, text }) {
 }
 
 export function appUrl(path) {
-  const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173")
+  const fallbackUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:5173";
+  const clientUrl = (process.env.CLIENT_URL || fallbackUrl)
     .split(",")[0]
     .trim()
     .replace(/\/$/, "");

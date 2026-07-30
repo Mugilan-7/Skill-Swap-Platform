@@ -40,6 +40,19 @@ export function configureSocket(server) {
 
       if (!allowed) return callback?.({ ok: false, message: "Chat is locked until the swap is accepted" });
       socket.join(`swap:${swapId}`);
+      socket.to(`swap:${swapId}`).emit("user:online", { userId: socket.user._id });
+      callback?.({ ok: true });
+    });
+
+    socket.on("typing", async ({ swapId, typing }, callback) => {
+      const swap = await SwapRequest.findById(swapId).select("from to status");
+      const allowed =
+        swap &&
+        swap.status === "accepted" &&
+        [String(swap.from), String(swap.to)].includes(String(socket.user._id));
+
+      if (!allowed) return callback?.({ ok: false, message: "Chat is locked until the swap is accepted" });
+      socket.to(`swap:${swapId}`).emit("typing", { swapId, userId: socket.user._id, typing: Boolean(typing) });
       callback?.({ ok: true });
     });
 

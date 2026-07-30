@@ -13,12 +13,15 @@ import {
   verifyEmail
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
+import { rateLimit } from "../middleware/rateLimitMiddleware.js";
 import { validate } from "../utils/validators.js";
 
 const router = express.Router();
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 40, message: "Too many authentication attempts. Please wait and try again." });
 
-router.post("/register", registerRules, validate, register);
-router.post("/login", loginRules, validate, login);
+router.post("/register", authLimiter, registerRules, validate, register);
+router.post("/signup", authLimiter, registerRules, validate, register);
+router.post("/login", authLimiter, loginRules, validate, login);
 router.get("/me", protect, me);
 router.get("/verify-email/:token", verifyEmail);
 router.post("/resend-verification", emailRules, validate, resendVerification);

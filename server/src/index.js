@@ -39,6 +39,12 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", app: "SkillSwap Hub" });
 });
 
+app.post("/api/register", registerAlias);
+app.post("/api/signup", registerAlias);
+app.post("/api/login", loginAlias);
+app.post("/register", registerAlias);
+app.post("/signup", registerAlias);
+app.post("/login", loginAlias);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/swaps", swapRoutes);
@@ -56,8 +62,22 @@ app.set("io", io);
 
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
-  server.listen(PORT, () => {
-    console.log(`SkillSwap Hub API running on port ${PORT}`);
+async function registerAlias(req, res, next) {
+  req.url = "/register";
+  return authRoutes(req, res, next);
+}
+
+async function loginAlias(req, res, next) {
+  req.url = "/login";
+  return authRoutes(req, res, next);
+}
+
+export { app, server };
+
+if (process.env.VERCEL !== "1") {
+  connectDB().then(() => {
+    server.listen(PORT, () => {
+      console.log(`SkillSwap Hub API running on port ${PORT}`);
+    });
   });
-});
+}
